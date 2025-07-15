@@ -10,8 +10,6 @@ def to_2tuple(x):
 
 
 class DropPath(nn.Module):
-    """Stochastic Depth � la timm.layers.DropPath (minimal)"""
-
     def __init__(self, drop_prob: float = 0.0):
         super().__init__()
         self.drop_prob = drop_prob
@@ -239,9 +237,10 @@ class BasicLayer(nn.Module):
                 x = checkpoint.checkpoint(blk, x)
             else:
                 x = blk(x)
+        pre_down = x
         if self.downsample is not None:
             x = self.downsample(x)
-        return x
+        return x, pre_down
 
 
 class PatchEmbed(nn.Module):
@@ -335,6 +334,26 @@ class SwinTransformer(nn.Module):
         x = self.forward_features(x)
         return self.head(x)
 
+    def forward_backbone(self, x:torch.Tensor):
+        x = self.patch_embed(x)
+        B = x.size(0)
+
+        if self.ape:
+            x = x + self.absolute_pos_embed
+        x = self.pos_drop(x)
+
+        feats = []
+        H, W = self.patch_embed.patches_resolution
+
+        for i, layer in enumerate(self.layers):
+            x, pre_down = layer(x)
+
+            h, w = H // (2 ** i), W // (2 ** i)
+            B, L, C = pre_down.shape
+            feat = pre_down.transpose(1, 2).reshape(B, C, h, w)
+            feats.append(feat)
+
+        return feats
 
 
 if __name__=='__main__':

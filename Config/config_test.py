@@ -34,13 +34,9 @@ def get_test_config_dict():
     args = dict(
         gpu_id='0',
         num_workers=6,
-        network_name='DeepLabV3+'
+        network_name='Swin-L'
     )
-    solver = dict(
-        backbone = 'resnet50',
-        output_stride=16,
-        deploy=True
-    )
+
     model = dict(
         resume='',  # weight_file
         mode='test',
@@ -48,7 +44,6 @@ def get_test_config_dict():
     )
     config = dict(
         args=args,
-        solver = solver,
         dataset=dataset,
         model=model
     )

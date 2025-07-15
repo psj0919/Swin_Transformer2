@@ -52,10 +52,10 @@ def get_config_dict():
     )
 
     model = dict(
-        resume='/home/sjpark/Downloads/swin_large_patch4_window7_224_22k.pth',  # weight_file
+        resume='',  # weight_file
         mode='train',
-        save_dir='/storage/sjpark/vehicle_data/runs/Swin_transformer/train/256/Swin_transformer-L',
-        checkpoint='/storage/sjpark/vehicle_data/checkpoints/night_dataloader/Swin_transformer'  # checkpoint_path
+        save_dir='/storage/sjpark/vehicle_data/runs/Swin_transformer2/train/256/Swin_transformer-S',
+        checkpoint='/storage/sjpark/vehicle_data/checkpoints/night_dataloader/Swin_transformer2'  # checkpoint_path
     )
     config = dict(
         args=args,

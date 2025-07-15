@@ -16,7 +16,7 @@ from distutils.version import LooseVersion
 from torchvision.utils import make_grid
 import torch.nn.functional as F
 
-from model.SwinTransformer import SwinTransformer
+from model.Swin_Transformer import *
 
 import re, torch
 from collections import OrderedDict
@@ -36,8 +36,6 @@ class Trainer():
         self.cfg = cfg
         self.device = self.setup_device()
         self.model = self.setup_network()
-        # self.preprocessing = self.get_gamma_correction()
-        # self.optimizer, self.preprocessing_optimizer = self.setup_optimizer()
         self.optimizer = self.setup_optimizer()
         self.train_loader = self.get_dataloader()
         self.val_loader = self.get_val_dataloader()
@@ -45,15 +43,14 @@ class Trainer():
         self.scheduler = self.setup_scheduler()
         self.global_step = 0
         self.save_path = self.cfg['model']['save_dir']
-        # self.writer = SummaryWriter(log_dir=self.save_path)
-        self.load_weight()
+        self.writer = SummaryWriter(log_dir=self.save_path)
 
 
     def setup_device(self):
-        # if self.cfg['args']['gpu_id'] is not None:
-        #     device = torch.device("cuda:{}".format(self.cfg['args']['gpu_id']) if torch.cuda.is_available() else "cpu")
-        # else:
-        device = torch.device("cpu")
+        if self.cfg['args']['gpu_id'] is not None:
+            device = torch.device("cuda:{}".format(self.cfg['args']['gpu_id']) if torch.cuda.is_available() else "cpu")
+        else:
+            device = torch.device("cpu")
 
         return device
 
@@ -86,8 +83,8 @@ class Trainer():
         # Swin-B dim = 128, depths = [2, 2, 18, 2], num_heads = [4, 8, 16, 32]
         # Swin-L dim = 192, depths = [2, 2, 18, 2], num_heads = [6, 12, 24, 48]
 
-        model = SwinTransformer(
-            img_size=224, patch_size=4, embed_dim=96, depths=(2, 2, 6, 2), num_heads=(3, 6, 12, 24), num_classes=21).to(self.device)
+        model = SwinTransformer_UperNet(
+            img_size=224, embed_dim=96, depths=(2, 2, 18, 2), num_heads=(3, 6, 12, 24), num_classes=21).to(self.device)
 
         return model.to(self.device)
 
@@ -209,17 +206,15 @@ class Trainer():
                 label = label.to(self.device)
                 label = label.type(torch.long)
                 #
-                # data, gamma = self.preprocessing(data)
                 out = self.model(data)
                 #
-                torch.autograd.set_detect_anomaly(True)
                 loss = self.loss(out, label)
 
                 self.optimizer.zero_grad()
-                # self.preprocessing_optimizer.zero_grad()
+
                 loss.backward()
                 self.optimizer.step()
-                # self.preprocessing_optimizer.step()
+
 
                 if self.global_step % self.cfg['solver']['print_freq'] == 0:
                     self.writer.add_scalar(tag='train/loss', scalar_value=loss, global_step=self.global_step)
@@ -365,7 +360,7 @@ class Trainer():
 
 
     def save_model(self, save_path):
-        save_file = 'Night_Swin_Transformer-L.pth'
+        save_file = 'Night_Swin_Transformer-S.pth'
 
         path = os.path.join(save_path, save_file)
 
